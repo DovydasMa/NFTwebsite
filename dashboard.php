@@ -27,7 +27,10 @@ if ($_SESSION['loggedin'] !== "admin") {
         <ul>
 
       <li><a href="?s=create">Create NFT</a></li>
+      
       <li><a href="?s=edit">Edit NFT</a></li>
+      <li><a href="?Support">View Tickets</a></li>
+      <li><a href="?users">View Users</a></li>
 
           <ul>
             <li><a href="logout.php" class="logout">
@@ -39,6 +42,17 @@ if ($_SESSION['loggedin'] !== "admin") {
         </ul>
       </div>
     </nav>
+    <?php
+    if (isset($_GET['Support'])) {
+        include 'view_tickets.php';
+    } elseif (isset($_GET['users'])) {
+        include 'view_users.php'; // Include view users file
+    } elseif (isset($_GET['s']) && $_GET['s'] == 'create') {
+        // Include create NFT form
+    } elseif (isset($_GET['s']) && $_GET['s'] == 'edit') {
+        // Include edit NFT form
+    }
+    ?>
 
 <?php if(isset($_GET['s']) && $_GET['s'] == 'create'): ?>
     <section class="main" id="createNFTSection">
@@ -148,3 +162,4 @@ if ($_SESSION['loggedin'] !== "admin") {
   </div>
 </body>
 </html>
+
