@@ -23,10 +23,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Inserting data into the complaints table
-    $sql = "INSERT INTO complaints (user_id, complaint_text, status) VALUES ('$user_id', '$description', 'Pending')";
+    $sql = "INSERT INTO complaints (user_id, subject, complaint_text, status) VALUES ('$user_id', '$subject', '$description', 'Pending')";
 
     if ($conn->query($sql) === TRUE) {
-        echo "Support ticket submitted successfully!";
+        echo "<script>alert('Support ticket submitted successfully!'); window.location.href='support.php';</script>";
+        exit();
+
     } else {
         echo "Error: " . $sql . "<br>" . $conn->error;
     }
