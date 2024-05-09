@@ -1,0 +1,57 @@
+<?php
+// Start the session
+session_start();
+
+// Check if the user is logged in
+if (!isset($_SESSION['loggedin'])) {
+    http_response_code(401); // Unauthorized
+    exit("User not logged in");
+}
+
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    http_response_code(405); // Method Not Allowed
+    exit("POST method required");
+}
+
+// Check if JSON data is received
+$data = json_decode(file_get_contents("php://input"));
+
+if (!$data) {
+    http_response_code(400); // Bad Request
+    exit("Invalid JSON data received");
+}
+
+// Check if itemName, price, and loginname are set in the JSON data
+if (!isset($data->itemName) || !isset($data->price) || !isset($data->loginname)) {
+    http_response_code(400); // Bad Request
+    exit("Item name, price, or login name not provided in the JSON data");
+}
+
+$servername = "127.0.0.1";
+$username = "root";
+$password = "";
+$dbname = "database";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    http_response_code(500); // Internal Server Error
+    exit("Connection failed: " . $conn->connect_error);
+}
+
+$itemName = $conn->real_escape_string($data->itemName);
+$price = $conn->real_escape_string($data->price);
+$loginname = $conn->real_escape_string($data->loginname);
+
+// Insert the purchased item into the database
+$sql = "INSERT INTO purchases (name, price, owner_name) VALUES ('$itemName', '$price', '$loginname')";
+
+if ($conn->query($sql) === TRUE) {
+    http_response_code(200); // OK
+    echo "Item purchased successfully";
+} else {
+    http_response_code(500); // Internal Server Error
+    echo "Error purchasing item: " . $conn->error;
+}
+
+$conn->close();
+?>
