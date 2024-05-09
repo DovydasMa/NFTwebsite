@@ -22,7 +22,7 @@ if (!$data) {
 }
 
 // Check if itemName, price, and loginname are set in the JSON data
-if (!isset($data->itemName) || !isset($data->price) || !isset($data->loginname)) {
+if (!isset($data->itemName) || !isset($data->price) || !isset($data->loginname) || !isset($data->txHash)) {
     http_response_code(400); // Bad Request
     exit("Item name, price, or login name not provided in the JSON data");
 }
@@ -41,16 +41,26 @@ if ($conn->connect_error) {
 $itemName = $conn->real_escape_string($data->itemName);
 $price = $conn->real_escape_string($data->price);
 $loginname = $conn->real_escape_string($data->loginname);
+$txHash = $conn->real_escape_string($data->txHash);
 
 // Insert the purchased item into the database
 $sql = "INSERT INTO purchases (name, price, owner_name) VALUES ('$itemName', '$price', '$loginname')";
+$sql2 = "INSERT INTO transactions (hash, name, price, owner_name) VALUES ('$txHash','$itemName', '$price', '$loginname')";
 
 if ($conn->query($sql) === TRUE) {
     http_response_code(200); // OK
-    echo "Item purchased successfully";
+    echo "Item purchased successfully: ";
 } else {
     http_response_code(500); // Internal Server Error
     echo "Error purchasing item: " . $conn->error;
+}
+
+if ($conn->query($sql2) === TRUE) {
+    http_response_code(200); // OK
+    echo "Transaction completed";
+} else {
+    http_response_code(500); // Internal Server Error
+    echo "Transaction failed: " . $conn->error;
 }
 
 $conn->close();

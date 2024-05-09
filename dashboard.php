@@ -162,4 +162,3 @@ if ($_SESSION['loggedin'] !== "admin") {
   </div>
 </body>
 </html>
-

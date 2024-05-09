@@ -77,6 +77,8 @@ if(isset($_GET['loginname'])) {
     .add-to-cart-btn:hover {
         background-color: #0056b3;
     }
+
+
     </style>
 
 <link rel="stylesheet" href="style.css" />
@@ -98,21 +100,22 @@ if(isset($_GET['loginname'])) {
           <li><a href="logout.php" class="logout">
             <i class="fas fa-sign-out-alt"></i>
             <span class="nav-item">Logout</span>
-            
+          
           </a></li>
           <button id="connect-button">Connect Metamask</button>
           <p id="bnb-balance-display">BNB Balance: --</p>
           <button id="env-balance-button">Check ENV Balance</button>
           <p id="balance-display">ENV Balance: --</p>
-          <li><a href="menu.php?category=all<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>">All</a></li>
+          
+          <li><a href="?category=all">All</a></li>
           <li><a href="menu.php?category=my_cart<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>" onclick="showCartItems()">My Cart</a></li>
           <li><a href="menu.php?category=my_nfts<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>">My Nfts</a></li>
-          <li><a href="menu.php?category=digital_art<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>">Digital Art</a></li>
-          <li><a href="menu.php?category=abstract_art<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>">Abstract Art</a></li>
-          <li><a href="menu.php?category=ai_art<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>">AI Art</a></li>
-          <li><a href="menu.php?category=sci_fi_art<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>">Sci-Fi Art</a></li>
-          <li><a href="menu.php?category=all&page=2<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>">Next Page</a></li>
-          <li><a href="menu.php?category=all&page=1<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>">Previous Page</a></li>
+          <li><a href="menu.php?category=my_transactions<?php echo isset($_SESSION['loggedin']) ? '&loginname=' . $loginname : ''; ?>" onclick="showTransactions()">My Transactions</a></li>
+          <li><a href="?category=abstract_art">Abstract Art</a></li>
+          <li><a href="?category=ai_art">AI Art</a></li>
+          <li><a href="?category=sci_fi_art">Sci-Fi Art</a></li>
+          <li><a href="?category=all&page=2">Next Page</a></li>
+          <li><a href="?category=all&page=1">Previous Page</a></li>
           <li>
           <form id="searchForm" onsubmit="handleSearch(event)">
   <input type="hidden" name="category" value="all">
@@ -131,9 +134,15 @@ if(isset($_GET['loginname'])) {
     <div id="cartContainer">
 
     </div>
+
+    <div id="transactionsContainer">
+
+   </div>
+
     <div class="nft-container" id="nftContainer"></div>
 
     <script>
+      
       document.getElementById('connect-button').addEventListener('click', event => { 
         let button = event.target;
         ethereum.request({method: 'eth_requestAccounts'}).then(accounts => {
@@ -182,12 +191,24 @@ function addToCart(itemName, itemPrice, loginname) {
     const data = JSON.stringify({ loginname: loginname, name: itemName, price: itemPrice });
     xhr.send(data);
 }
+function fetchTransactions() {
+    return fetch(`transactions.php?loginname=${loginname}`) // Replace 'fetch_transactions.php' with your actual backend endpoint
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch transactions');
+            }
+            return response.json();
+        })
+        .then(data => {
+            return data.transactions; // Assuming your response JSON has a 'transactions' key containing an array of transactions
+        });
+}
     
     const loginname = "<?php echo $loginname; ?>";
     console.log('Login name:', loginname);
 
-    function fetchNFTs(category, page, search, loginname) {
-      fetch(`get_existing_nfts.php?category=${category}&page=${page}&search=${search}&loginname=${loginname}`)
+    function fetchNFTs(category, page, search) {
+      fetch(`get_existing_nfts.php?category=${category}&page=${page}&search=${search}`)
         .then(response => response.json())
         .then(data => {
           const nftContainer = document.getElementById('nftContainer');
@@ -200,7 +221,7 @@ function addToCart(itemName, itemPrice, loginname) {
                 <div class="nft-name">${nft.name}</div>
                 <div class="nft-description">${nft.description}</div>
                 <div class="nft-owner">${loginname}</div>
-                <div class="nft-price">${nft.price} ENV</div> <!-- Display price -->
+                <div class="nft-price">${nft.price} ETH</div> <!-- Display price -->
                 <button class="add-to-cart-btn" onclick="addToCart('${nft.name}', ${nft.price}, '${loginname}')">Add to Cart</button> <!-- Add to Cart button -->
               </div>
             `;
@@ -211,31 +232,52 @@ function addToCart(itemName, itemPrice, loginname) {
     }
 
     
-    
+    function setAction() {
+  var searchInput = document.getElementById("searchInput").value;
+  // Construct the desired URL with the search term included
+  var url = `get_existing_nfts.php?category=all&page=1&search=${searchInput}`;
+  // Set the action attribute of the form to the constructed URL
+  document.getElementById("searchForm").action = url;
+}
  
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('category');
     const search = urlParams.get('search');
     const page = urlParams.get('page') || 1;
-    
+
+    function handleSearch(event) {
+  event.preventDefault(); // Prevent default form submission
+  
+  const searchInput = document.getElementById("searchInput").value;
+  const url = `get_existing_nfts.php?category=all&page=1&search=${searchInput}`;
+  
+  // Update browser URL
+  history.pushState(null, "", url);
+  
+  // Fetch NFTs based on the search term
+  fetchNFTs('all', 1, searchInput);
+}
 
 
-    
-    if (category != 'my_cart') {
+if (category != 'my_cart') {
       const loginname = "<?php echo $loginname; ?>";
-      fetchNFTs(category, page, "all", loginname);
+      fetchNFTs(category, page, "all");
     }
-    if (category === 'my_cart') {
+    else if (category === 'my_cart') {
       const loginname = "<?php echo $loginname; ?>";
       showCartItems();
-    }
-    if (category === 'my_nfts') {
+    } 
+    else if (category === 'my_nfts') {
       const loginname = "<?php echo $loginname; ?>";
       showMyNFTs();
     }
+    if (category === 'my_transactions') {
+      const loginname = "<?php echo $loginname; ?>";
+      showTransactions();
+    }
     else {
       const loginname = "<?php echo $loginname; ?>";
-      fetchNFTs('all', page, "all", loginname);
+      fetchNFTs('all', page, "all");
     }
 
 
@@ -277,7 +319,7 @@ function showCartItems() {
 }
 
 function buyNow(itemName, itemPrice) {
-    
+    // Retrieve loginname from session or wherever you store it
     const loginname = "<?php echo $loginname; ?>";
 
     // Prepare JSON data
@@ -303,14 +345,14 @@ function buyNow(itemName, itemPrice) {
                 if (!response.ok) {
                     throw new Error('Failed to add NFT to My NFTs');
                 }
-                
+                // Handle successful addition
                 return response.text(); // Return response body as text
             })
             .then(message => {
                 console.log(message); // Log the success message
                 // Optionally, display the success message to the user
                 alert(message);
-                // After successful purchase, remove the purchased nft
+                // After successful purchase, you may want to refresh the cart or update its contents
                 removeFromCart(itemName);
             })
             .catch(error => {
@@ -388,6 +430,36 @@ function showMyNFTs() {
         });
 }
 
+function showTransactions() {
+    fetchTransactions()
+        .then(transactions => {
+            // Construct HTML for displaying transactions
+            let transactionsHTML = `<h2>Transactions</h2>`;
+            if (transactions.length === 0) {
+                transactionsHTML += `<p>No transactions found</p>`;
+            } else {
+                transactions.forEach(transaction => {
+                    transactionsHTML += `
+                        <div>
+                            <span>Transaction Hash: ${transaction.hash}</span><br>
+                            <span>Item Name: ${transaction.name}</span><br>
+                            <span>Price: ${transaction.price} ENV</span><br>
+                            <span>Owner Name: ${transaction.owner_name}</span><br>
+                            <span>Status: Completed</span><br>
+                        </div>`;
+                });
+            }
+            // Write HTML to the transactions container
+            document.getElementById("transactionsContainer").innerHTML = transactionsHTML;
+        })
+        .catch(error => {
+            console.error('Error fetching transactions:', error);
+            // Display error message
+            document.getElementById("transactionsContainer").innerHTML = `<h2>Error</h2><p>There was an error fetching transactions.</p>`;
+        });
+}
+
+
 
 function removeFromCart(itemName) {
     // Retrieve loginname from session or wherever you store it
@@ -419,20 +491,6 @@ function removeFromCart(itemName) {
         // Optionally, display an error message or handle the error in another way
     });
 }
-
-function handleSearch(event) {
-  event.preventDefault(); // Prevent default form submission
-
-  const searchInput = document.getElementById("searchInput").value;
-  const url = `get_existing_nfts.php?category=all&page=1&search=${searchInput}`;
-
-  // Update browser URL
-  history.pushState(null, "", url);
-
-  // Fetch NFTs based on the search term
-  fetchNFTs('all', 1, searchInput);
-}
-
 
 </script>
 

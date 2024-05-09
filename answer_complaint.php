@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $sql_update_status = "UPDATE complaints SET status = 'answered' WHERE id = '$complaint_id'";
             if ($conn->query($sql_update_status) === TRUE) {
 
-                echo "<script>alert('Response submitted successfully!'); window.location.href='dashboard.php';</script>";
+                echo "<script>alert('Response submitted successfully!'); window.location.href='dashboard.php?Support';</script>";
 
             } else {
                 echo "Error updating status: " . $conn->error;
