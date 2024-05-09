@@ -89,6 +89,7 @@ if (!isset($_SESSION['loggedin'])) {
 
       <li><a href="?for_sale=0">My NFTs</a></li>
       <li><a href="?for_sale=1">My Store</a></li>
+      <li><a href="support.php">Support</a></li>
         <ul>
           <li><a href="logout.php" class="logout">
             <i class="fas fa-sign-out-alt"></i>
